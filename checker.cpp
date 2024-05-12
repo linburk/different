@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
   workName = parseBeforeDot(argvWork);
   checkName = parseBeforeDot(argvCheck);
-  genName = parseBeforeDot(argvCheck);
+  genName = parseBeforeDot(argvGen);
 
   commandCompileWork = "clang++ " + argvWork + " -o " + workName;
   commandCompileCheck = "clang++ " + argvCheck + " -o " + checkName;
