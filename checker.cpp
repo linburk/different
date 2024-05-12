@@ -69,8 +69,8 @@ int main(int argc, char *argv[]) {
     std::system(commandLaunchCheck.c_str());
     workR << workOutput.rdbuf();
     checkR << checkOutput.rdbuf();
-    while (workR.tellp() != std::streampos(0) &&
-           checkR.tellp() != std::streampos(0)) {
+    while (workR.rdbuf()->in_avail() != 0 &&
+           checkR.rdbuf()->in_avail() != 0) {
       std::string readSomeWork, readSomeCheck;
       workR >> readSomeWork;
       checkR >> readSomeCheck;
