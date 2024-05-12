@@ -86,4 +86,5 @@ breakFlag:
   std::system(commandRmCheck.c_str());
   std::system(commandRmGen.c_str());
   std::cout << "Removed\n";
+  return 0;
 }
