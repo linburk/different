@@ -78,7 +78,7 @@ template <typename T> long double length(point<T> &pntA, point<T> &pntB) {
   return std::hypot((pntA.x - pntB.x), (pntA.y - pntB.y));
 }
 
-template <typename T> long double area(std::vector<point<T>> shape) {
+template <typename T> long double area(const std::vector<point<T>> &shape) {
   long long S = 0;
   for (size_t i = 0; i < shape.size(); i++) {
     S += shape[i] % shape[(i + 1) % shape.size()];
