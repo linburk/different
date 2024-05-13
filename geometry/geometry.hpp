@@ -29,7 +29,7 @@ long double radangle(const point<T> &pntA, const point<T> &pntB);
 template <typename T>
 long double length(const point<T> &pntA, const point<T> &pntB);
 
-template <typename T> long double area(const std::vector<point<T>> &shape);
+template <typename T> long double area(const std::vector<point<T> > &shape);
 
 template <typename T> struct mvector {
   point<T> st, end;

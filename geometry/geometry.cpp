@@ -78,7 +78,7 @@ template <typename T> long double length(point<T> &pntA, point<T> &pntB) {
   return std::hypot((pntA.x - pntB.x), (pntA.y - pntB.y));
 }
 
-template <typename T> long double area(const std::vector<point<T>> &shape) {
+template <typename T> long double area(const std::vector<point<T> > &shape) {
   long long S = 0;
   for (size_t i = 0; i < shape.size(); i++) {
     S += shape[i] % shape[(i + 1) % shape.size()];
@@ -175,8 +175,8 @@ const mvector<T> mvector<T>::operator*(long double q) const {
 
 template <typename T>
 const bool mvector<T>::operator==(const mvector<T> &mvec) const {
-  const point tEndSt = end - st;
-  const point tMvecStEnd = mvec.end - mvec.st;
+  const point<T> tEndSt = end - st;
+  const point<T> tMvecStEnd = mvec.end - mvec.st;
   return tEndSt == tMvecStEnd;
 }
 
@@ -186,20 +186,20 @@ const bool mvector<T>::operator!=(const mvector<T> &mvec) const {
 }
 
 template <typename T> const T mvector<T>::operator*(const mvector<T> &mvec) {
-  const point tEndSt = end - st;
-  const point tMvecEndSt = mvec.end - mvec.st;
+  const point<T> tEndSt = end - st;
+  const point<T> tMvecEndSt = mvec.end - mvec.st;
   return tEndSt * tMvecEndSt;
 }
 
 template <typename T> const T mvector<T>::operator%(const mvector<T> &mvec) {
-  const point tEndSt = end - st;
-  const point tMvecEndSt = mvec.end - mvec.st;
+  const point<T> tEndSt = end - st;
+  const point<T> tMvecEndSt = mvec.end - mvec.st;
   return tEndSt % tMvecEndSt;
 }
 
 template <typename T>
 long double radangle(mvector<T> &mvecA, mvector<T> &mvecB) {
-  const point tEndStA = mvecA.end - mvecA.st;
-  const point tEndStB = mvecB.end - mvecA.st;
+  const point<T> tEndStA = mvecA.end - mvecA.st;
+  const point<T> tEndStB = mvecB.end - mvecA.st;
   return radangle(tEndStA, tEndStB);
 }
