@@ -96,11 +96,11 @@ mvector<T>::mvector(const point<T> &pntA, const point<T> &pntB)
     : st(pntA), end(pntB){}
 
 template <typename T> long double mvector<T>::length() {
-  return length(st, end);
+  return ::length(st, end);
 }
 
 template <typename T> long double mvector<T>::radangle() {
-  return radangle(st, end);
+  return ::radangle(st, end);
 }
 
 template <typename T> void mvector<T>::rotate(const long double angle) {
