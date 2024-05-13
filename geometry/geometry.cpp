@@ -3,7 +3,7 @@
 #include <vector>
 #include "geometry.hpp"
 
-template <typename T> point<T>::point(){};
+template <typename T> point<T>::point(){}
 
 template <typename T> point<T>::point(int null) : x(0), y(0) {}
 
@@ -86,14 +86,14 @@ template <typename T> long double area(std::vector<point<T>> shape) {
   return (long double)std::abs(S) / 2;
 }
 
-template <typename T> mvector<T>::mvector(){};
+template <typename T> mvector<T>::mvector(){}
 
 template <typename T>
-mvector<T>::mvector(const point<T> &pnt) : st(0), end(pnt){};
+mvector<T>::mvector(const point<T> &pnt) : st(0), end(pnt){}
 
 template <typename T>
 mvector<T>::mvector(const point<T> &pntA, const point<T> &pntB)
-    : st(pntA), end(pntB){};
+    : st(pntA), end(pntB){}
 
 template <typename T> long double mvector<T>::length() {
   return length(st, end);
