@@ -18,7 +18,7 @@ template <typename T> struct point {
   const bool operator==(const point &pnt) const;
   const bool operator!=(const point &pnt) const;
   const T operator*(const point &pnt) const; // Scalar product
-  const T operator%(const point &pnt) const; // Vector product
+  const T operator%(const point &pnt) const; // Cross product
 };
 
 template <typename T> std::istream &operator>>(std::istream &is, point<T> &pnt);
