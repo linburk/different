@@ -1,9 +1,9 @@
 #include <cmath>
+#include <geometry.hpp>
 #include <iostream>
 #include <vector>
-#include "geometry.hpp"
 
-template <typename T> point<T>::point(){}
+template <typename T> point<T>::point() {}
 
 template <typename T> point<T>::point(int null) : x(0), y(0) {}
 
@@ -78,7 +78,7 @@ template <typename T> long double length(point<T> &pntA, point<T> &pntB) {
   return std::hypot((pntA.x - pntB.x), (pntA.y - pntB.y));
 }
 
-template <typename T> long double area(const std::vector<point<T> > &shape) {
+template <typename T> long double area(const std::vector<point<T>> &shape) {
   long long S = 0;
   for (size_t i = 0; i < shape.size(); i++) {
     S += shape[i] % shape[(i + 1) % shape.size()];
@@ -86,14 +86,14 @@ template <typename T> long double area(const std::vector<point<T> > &shape) {
   return (long double)std::abs(S) / 2;
 }
 
-template <typename T> mvector<T>::mvector(){}
+template <typename T> mvector<T>::mvector() {}
 
 template <typename T>
-mvector<T>::mvector(const point<T> &pnt) : st(0), end(pnt){}
+mvector<T>::mvector(const point<T> &pnt) : st(0), end(pnt) {}
 
 template <typename T>
 mvector<T>::mvector(const point<T> &pntA, const point<T> &pntB)
-    : st(pntA), end(pntB){}
+    : st(pntA), end(pntB) {}
 
 template <typename T> long double mvector<T>::length() {
   return ::length(st, end);
@@ -145,7 +145,7 @@ template <typename T> mvector<T> &mvector<T>::operator*=(const long double q) {
 }
 
 template <typename T> const mvector<T> mvector<T>::operator-() const {
-  return vec(*this) *= -1;
+  return mvector(*this) *= -1;
 }
 
 template <typename T>
@@ -203,3 +203,8 @@ long double radangle(mvector<T> &mvecA, mvector<T> &mvecB) {
   const point<T> tEndStB = mvecB.end - mvecA.st;
   return radangle(tEndStA, tEndStB);
 }
+
+template class point<long long>;
+template class point<long double>;
+template class mvector<long long>;
+template class mvector<long double>;
