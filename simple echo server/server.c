@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
   socklen_t clilen;
   bzero(&servaddr, sizeof(servaddr));
   servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-  servaddr.sin_port = htons(19128);
+  servaddr.sin_port = htons(atoi(argv[1]));
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
   bind(listenfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
   listen(listenfd, 10);
