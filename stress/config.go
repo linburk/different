@@ -69,7 +69,7 @@ func setupCfg(fileName string, rewrite bool) (cfg config, err error) {
 			fmt.Fprint(os.Stderr, "Mkdir error\n")
 			return
 		}
-		cfgFile, err = createCfgFile(fileName)
+		_, err = createCfgFile(fileName)
 		if err != nil {
 			return
 		}
@@ -114,15 +114,7 @@ func createCfgFile(cfgName string) (cfgFile *os.File, err error) {
 	}
 	return
 }
-func openCfgFile(cfgName string) (cfgFile *os.File, err error) {
-	cfgFile, err = os.OpenFile(cfgPath+cfgName, os.O_RDWR, os.ModePerm)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		fmt.Fprint(os.Stderr, "File open error\n")
-		return
-	}
-	return
-}
+
 func inputConfig(cfgFile *os.File) {
 	var cfg config
 	fmt.Print("Enter path to your code...\n")
