@@ -1,4 +1,4 @@
-package stress
+package Main
 
 import (
 	"flag"

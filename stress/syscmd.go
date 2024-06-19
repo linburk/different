@@ -1,4 +1,4 @@
-package stress
+package Main
 
 func compileCmdsList(cfg config) (compilationCmds []string) {
 	for i := 0; i < cfg.fileNum; i++ {
