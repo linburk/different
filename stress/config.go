@@ -10,15 +10,43 @@ const cfgPath string = "~/stress_cfg/"
 const cfgFilename string = "config.txt"
 
 type config struct {
-	codePath     string
+	filePath     string
+	compare      bool
 	removetxt    bool
 	fileNum      int
 	files        []string
 	languages    []string
 	compilators  []string
 	compileFlags []string
-	// TODO compare      bool
 
+	filenPaths     []string
+	filenPathsExec []string
+	outFilenPath   []string
+}
+
+func writeFilenPaths(filePath string, files []string, mode int, cfg config) (filenPaths []string) {
+	for i, file := range files {
+		var filenPath string
+		if mode == 1 { // exec compilated
+			if filepath.Ext(file) == ".py" {
+				filenPath = cfg.compilators[i] + " " + filenPath + file
+			} else {
+				filenPath = filePath + "./" + eraseExt(file)
+			}
+		}
+		if mode == 2 { // compilated
+			if filepath.Ext(file) == ".py" {
+				continue
+			} else {
+				filenPath = filePath + eraseExt(file)
+			}
+		}
+		if mode == 3 { // don't change
+			filenPath = filePath + file
+		}
+		filenPaths = append(filenPaths, filenPath)
+	}
+	return
 }
 
 func eraseExt(filename string) string {
@@ -26,50 +54,23 @@ func eraseExt(filename string) string {
 	return filename
 }
 
-func createCompilationCommands(cfg config) (compilationCommands []string) {
+func outputFilesList(cfg config) (outFiles []string) {
 	for i := 0; i < cfg.fileNum; i++ {
-		if cfg.languages[i] == "Python" {
-			continue
-		}
-		compileCommand := cfg.compilators[i] + " " + cfg.compileFlags[i] + " " + cfg.codePath + cfg.files[i] + " -o " + cfg.codePath + eraseExt(cfg.files[i])
-		compilationCommands = append(compilationCommands, compileCommand)
+		outFile := cfg.files[i] + ".txt"
+		outFiles = append(outFiles, outFile)
 	}
 	return
-}
-func createExecCommands(cfg config) (execCommands []string) {
-	for i := 0; i < cfg.fileNum; i++ {
-		var execCommand string
-		if cfg.languages[i] == "Python" {
-			execCommand = cfg.compilators[i] + " " + cfg.codePath + cfg.files[i]
-		} else {
-			execCommand = cfg.codePath + "./ " + eraseExt(cfg.files[i])
-		}
-		execCommands = append(execCommands, execCommand)
-	}
-	return
-}
-func createRemoveCommands(cfg config) (removeCommands []string) {
-	for i := 0; i < cfg.fileNum; i++ {
-		if cfg.languages[i] == "Python" {
-			continue
-		}
-		removeCommand := "rm " + cfg.codePath + eraseExt(cfg.files[i])
-		removeCommands = append(removeCommands, removeCommand)
-	}
-	return
-}
-func createTextFiles(cfg config) {
-	// TODO
 }
 
 func readConfig(fileName string) (cfg config, err error) {
 	cfgFile, err := os.Open(cfgPath + fileName)
+	defer cfgFile.Close()
 	if os.IsNotExist(err) {
 		cfgFile, err = newFileConfig(cfgPath + fileName)
 		if err != nil {
 			return
 		}
-		writeConfig(cfgFile)
+		inputConfig(cfgFile)
 	} else {
 		fmt.Fprint(os.Stderr, "File open error\n")
 		return
@@ -79,27 +80,28 @@ func readConfig(fileName string) (cfg config, err error) {
 }
 func newFileConfig(cfgName string) (cfgFile *os.File, err error) {
 	cfgFile, err = os.Create(cfgPath + cfgName)
+	defer cfgFile.Close()
 	if err != nil {
 		fmt.Print(os.Stderr, "File create error\n")
 		return
 	}
 	return
 }
-func writeConfig(cfgFile *os.File) {
+
+func inputConfig(cfgFile *os.File) {
 	var cfg config
 	fmt.Print("Enter path to your code...\n")
-	fmt.Scan(&cfg.codePath)
+	fmt.Scan(&cfg.filePath)
 	fmt.Print("Enter number of files, last file must be generator...\n")
 	fmt.Scan(&cfg.fileNum)
-	// TODO
-	// if cfg.fileNum > 2 {
-	// 	fmt.Print("Check comparison? Y/n \n")
-	// 	var comparisonFlag string
-	// 	fmt.Scan(&comparisonFlag)
-	// 	if comparisonFlag == "Y" || comparisonFlag == "y" {
-	// 		cfg.compare = true
-	// 	}
-	// }
+	if cfg.fileNum == 3 {
+		fmt.Print("Check comparison? Y/n \n")
+		var comparisonFlag string
+		fmt.Scan(&comparisonFlag)
+		if comparisonFlag == "Y" || comparisonFlag == "y" {
+			cfg.compare = true
+		}
+	}
 	fmt.Printf("Remove .txt files? Y/n\n")
 	var rmtxt string
 	fmt.Scan(&rmtxt)
@@ -130,5 +132,9 @@ func writeConfig(cfgFile *os.File) {
 		fmt.Scan(&compileFlag)
 		cfg.compileFlags = append(cfg.compileFlags, compileFlag)
 	}
+	outFiles := outputFilesList(cfg)
+	cfg.outFilenPath = writeFilenPaths(cfg.filePath, outFiles, 3, cfg)
+	cfg.filenPaths = writeFilenPaths(cfg.filePath, cfg.files, 2, cfg)
+	cfg.filenPathsExec = writeFilenPaths(cfg.filePath, cfg.files, 1, cfg)
 	fmt.Fprint(cfgFile, cfg)
 }
