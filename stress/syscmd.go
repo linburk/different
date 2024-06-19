@@ -1,12 +1,12 @@
-package Main
+package main
 
-func compileCmdsList(cfg config) (compilationCmds []string) {
-	for i := 0; i < cfg.fileNum; i++ {
-		if cfg.languages[i] == "Python" {
+func compileCmdsList(cfg config) (compileCmds []string) {
+	for i := 0; i < cfg.FileNum; i++ {
+		if cfg.Languages[i] == "Python" {
 			continue
 		}
-		compileCmd := cfg.compilators[i] + " " + cfg.compileFlags[i] + " " + cfg.filenPaths[i] + " -o " + eraseExt(cfg.filenPaths[i])
-		compilationCmds = append(compilationCmds, compileCmd)
+		compileCmd := cfg.Compilators[i] + " " + cfg.CompileFlags[i] + " " + cfg.FilenPaths[i] + " -o " + eraseExt(cfg.FilenPaths[i])
+		compileCmds = append(compileCmds, compileCmd)
 	}
 	return
 }

@@ -1,48 +1,53 @@
-package Main
+package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
-const cfgPath string = "~/stress_cfg/"
-const cfgFilename string = "config.txt"
+const cfgPath string = "stress_cfg/"
+const cfgFilename string = "config.json"
 
 type config struct {
-	filePath     string
-	compare      bool
-	removetxt    bool
-	fileNum      int
-	files        []string
-	languages    []string
-	compilators  []string
-	compileFlags []string
+	FilePath     string   `json:"filepath"`
+	Compare      bool     `json:"compare"`
+	Removeout    bool     `json:"removeout"`
+	FileNum      int      `json:"filenum"`
+	Files        []string `json:"files"`
+	Languages    []string `json:"languages"`
+	Compilators  []string `json:"compilators"`
+	CompileFlags []string `json:"compileflags"`
 
-	filenPaths     []string
-	filenPathsExec []string
-	outFilenPath   []string
+	FilenPaths     []string `json:"filenpaths"`
+	FilenPathsExec []string `json:"filenpathsexec"`
+	FilenPathsComp []string `json:"filenpathscomp"`
+	OutFilenPath   []string `json:"outfilenpath"`
 }
 
-func writeFilenPaths(filePath string, files []string, mode int, cfg config) (filenPaths []string) {
-	for i, file := range files {
+func writeFilenPaths(mode int, cfg config) (filenPaths []string) {
+	for i, file := range cfg.Files {
 		var filenPath string
 		if mode == 1 { // exec compilated
-			if filepath.Ext(file) == ".py" {
-				filenPath = cfg.compilators[i] + " " + filenPath + file
+			if cfg.Languages[i] == "Python" {
+				filenPath = cfg.Compilators[i] + " " + cfg.FilePath + file
 			} else {
-				filenPath = filePath + "./" + eraseExt(file)
+				filenPath = cfg.FilePath + "./" + eraseExt(file)
 			}
 		}
 		if mode == 2 { // compilated
-			if filepath.Ext(file) == ".py" {
+			if cfg.Languages[i] == "Python" {
 				continue
 			} else {
-				filenPath = filePath + eraseExt(file)
+				filenPath = cfg.FilePath + eraseExt(file)
 			}
 		}
-		if mode == 3 { // don't change
-			filenPath = filePath + file
+		if mode == 3 { // outfiles
+			filenPath = cfg.FilePath + eraseExt(file) + ".out"
+		}
+		if mode == 4 { // no changes
+			filenPath = cfg.FilePath + file
 		}
 		filenPaths = append(filenPaths, filenPath)
 	}
@@ -54,87 +59,126 @@ func eraseExt(filename string) string {
 	return filename
 }
 
-func outputFilesList(cfg config) (outFiles []string) {
-	for i := 0; i < cfg.fileNum; i++ {
-		outFile := cfg.files[i] + ".txt"
-		outFiles = append(outFiles, outFile)
-	}
-	return
-}
-
-func readConfig(fileName string) (cfg config, err error) {
-	cfgFile, err := os.Open(cfgPath + fileName)
-	defer cfgFile.Close()
+func setupCfg(fileName string, rewrite bool) (cfg config, err error) {
+	writed := false
+	cfgFile, err := os.OpenFile(cfgPath+fileName, os.O_WRONLY, os.ModePerm)
 	if os.IsNotExist(err) {
-		cfgFile, err = newFileConfig(cfgPath + fileName)
+		err = os.MkdirAll(cfgPath, os.ModePerm)
+		if err != nil && !os.IsExist(err) {
+			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprint(os.Stderr, "Mkdir error\n")
+			return
+		}
+		cfgFile, err = createCfgFile(fileName)
 		if err != nil {
 			return
 		}
+		cfgFile, err = os.OpenFile(cfgPath+fileName, os.O_WRONLY, os.ModePerm)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprint(os.Stderr, "File open after create error\n")
+			return
+		}
 		inputConfig(cfgFile)
-	} else {
+		writed = true
+	} else if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		fmt.Fprint(os.Stderr, "File open error\n")
 		return
 	}
-	fmt.Fscan(cfgFile, &cfg)
+	defer cfgFile.Close()
+	if !writed && rewrite {
+		inputConfig(cfgFile)
+	}
+	cfg, err = readCfgFile(cfgFile)
 	return
 }
-func newFileConfig(cfgName string) (cfgFile *os.File, err error) {
-	cfgFile, err = os.Create(cfgPath + cfgName)
-	defer cfgFile.Close()
+
+func readCfgFile(cfgFile *os.File) (cfg config, err error) {
+	var cfgjson []byte
+	fmt.Fscan(cfgFile, &cfgjson)
+	err = json.Unmarshal(cfgjson, &cfg)
 	if err != nil {
-		fmt.Print(os.Stderr, "File create error\n")
+		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprint(os.Stderr, "Unmarshall error\n")
 		return
 	}
 	return
 }
-
+func createCfgFile(cfgName string) (cfgFile *os.File, err error) {
+	cfgFile, err = os.OpenFile(cfgPath+cfgName, os.O_CREATE, os.ModePerm)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprint(os.Stderr, "File create error\n")
+		return
+	}
+	return
+}
+func openCfgFile(cfgName string) (cfgFile *os.File, err error) {
+	cfgFile, err = os.OpenFile(cfgPath+cfgName, os.O_RDWR, os.ModePerm)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprint(os.Stderr, "File open error\n")
+		return
+	}
+	return
+}
 func inputConfig(cfgFile *os.File) {
 	var cfg config
 	fmt.Print("Enter path to your code...\n")
-	fmt.Scan(&cfg.filePath)
+	fmt.Scan(&cfg.FilePath)
 	fmt.Print("Enter number of files, last file must be generator...\n")
-	fmt.Scan(&cfg.fileNum)
-	if cfg.fileNum == 3 {
+	fmt.Scan(&cfg.FileNum)
+	if cfg.FileNum == 3 {
 		fmt.Print("Check comparison? Y/n \n")
 		var comparisonFlag string
 		fmt.Scan(&comparisonFlag)
 		if comparisonFlag == "Y" || comparisonFlag == "y" {
-			cfg.compare = true
+			cfg.Compare = true
 		}
 	}
-	fmt.Printf("Remove .txt files? Y/n\n")
+	fmt.Print("Remove .txt files? Y/n\n")
 	var rmtxt string
 	fmt.Scan(&rmtxt)
 	if rmtxt == "Y" || rmtxt == "y" {
-		cfg.removetxt = true
+		cfg.Removeout = true
 	}
-	for i := 0; i < cfg.fileNum; i++ {
-		fmt.Printf("Enter %d filename\n")
+	for i := 0; i < cfg.FileNum; i++ {
+		fmt.Printf("Enter %d filename\n", i+1)
 		var filename string
 		fmt.Scan(&filename)
-		cfg.files = append(cfg.files, filename)
+		cfg.Files = append(cfg.Files, filename)
 	}
-	for i := 0; i < cfg.fileNum; i++ {
+	for i := 0; i < cfg.FileNum; i++ {
 		fmt.Printf("Enter %d file language (Python / C++ / C)\n", i+1)
 		var lang string
 		fmt.Scan(&lang)
-		cfg.languages = append(cfg.languages, lang)
+		cfg.Languages = append(cfg.Languages, lang)
 	}
-	for i := 0; i < cfg.fileNum; i++ {
-		fmt.Printf("Enter %d compilator (g++, python3, etc.) \n", i+1)
+	for i := 0; i < cfg.FileNum; i++ {
+		fmt.Printf("Enter %d file compilator (g++, python3, etc.) \n", i+1)
 		var compilator string
 		fmt.Scan(&compilator)
-		cfg.compilators = append(cfg.compilators, compilator)
+		cfg.Compilators = append(cfg.Compilators, compilator)
 	}
-	for i := 0; i < cfg.fileNum; i++ {
-		fmt.Printf("Enter %d compile flags or 0 if not\n", i+1)
+	for i := 0; i < cfg.FileNum; i++ {
+		fmt.Printf("Enter %d file compile flags or 0 if not (without -) \n", i+1)
 		var compileFlag string
 		fmt.Scan(&compileFlag)
-		cfg.compileFlags = append(cfg.compileFlags, compileFlag)
+		if compileFlag == "0" {
+			continue
+		}
+		cfg.CompileFlags = append(cfg.CompileFlags, compileFlag)
 	}
-	outFiles := outputFilesList(cfg)
-	cfg.outFilenPath = writeFilenPaths(cfg.filePath, outFiles, 3, cfg)
-	cfg.filenPaths = writeFilenPaths(cfg.filePath, cfg.files, 2, cfg)
-	cfg.filenPathsExec = writeFilenPaths(cfg.filePath, cfg.files, 1, cfg)
-	fmt.Fprint(cfgFile, cfg)
+	cfg.FilenPathsExec = writeFilenPaths(1, cfg)
+	cfg.FilenPathsComp = writeFilenPaths(2, cfg)
+	cfg.OutFilenPath = writeFilenPaths(3, cfg)
+	cfg.FilenPaths = writeFilenPaths(4, cfg)
+	cfgjson, err := json.Marshal(cfg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprint(os.Stderr, "Marshal error\n")
+		return
+	}
+	fmt.Fprint(cfgFile, cfgjson)
 }
